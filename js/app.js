@@ -2,7 +2,7 @@
 // SCRIPT CONFIGURATION
 // =================================================================
 // !!! QUAN TRỌNG: Dán URL Web App của bạn từ Google Apps Script vào đây !!!
-const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx1FiLui142IgKYCpnX7biStorczZWAPJlNdX__n4d9zXtWaNmGtvld3Zj-hpAn8oQUTQ/exec';
 // =================================================================
 
 const appRoot = document.getElementById('app-root');
