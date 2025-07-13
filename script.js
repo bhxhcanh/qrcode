@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Gửi dữ liệu đến Google Apps Script để ghi log
-        logToGoogleSheet(content);
+        logToGoogleSheet(text);
     });
 
     async function logToGoogleSheet(content) {
