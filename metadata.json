@@ -1,0 +1,5 @@
+{
+  "name": "Trình tạo mã QR Pro",
+  "description": "Một ứng dụng web hiện đại và đẹp mắt để tạo và tải xuống mã QR tùy chỉnh từ văn bản hoặc URL ngay lập tức. Được xây dựng với React và Tailwind CSS cho trải nghiệm người dùng tuyệt vời và hiệu quả.",
+  "requestFramePermissions": []
+}
