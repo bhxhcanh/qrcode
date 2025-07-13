@@ -2,25 +2,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // THAY THẾ BẰNG URL WEB APP CỦA BẠN TỪ BƯỚC 1
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw98atO4DVVxrEUvvcgNrao_j0jSqCBRk-179yAwmdm8mlJIBSdvXc08BTxJWEtZWlUdA/exec';
 
-    const generateBtn = document.getElementById('generate-btn');
     const textInput = document.getElementById('text-input');
     const qrContainer = document.getElementById('qrcode-container');
     const statusMessage = document.getElementById('status-message');
+    let logDebounceTimer;
 
-    generateBtn.addEventListener('click', () => {
+    function handleInputChange() {
         const text = textInput.value.trim();
-
-        if (text === '') {
-            alert('Vui lòng nhập nội dung!');
-            return;
-        }
 
         // Xóa mã QR cũ và thông báo
         qrContainer.innerHTML = '';
-        statusMessage.textContent = 'Đang tạo mã...';
+        statusMessage.textContent = '';
 
-        // Tạo mã QR mới mỗi lần click.
-        // Điều này đơn giản và hiệu quả hơn là cố gắng cập nhật mã QR hiện có.
+        if (text === '') {
+            return; // Nếu không có nội dung, dừng lại
+        }
+
+        // Tạo mã QR mới ngay lập tức
         new QRCode(qrContainer, {
             text: text,
             width: 256,
@@ -30,16 +28,23 @@ document.addEventListener('DOMContentLoaded', () => {
             correctLevel: QRCode.CorrectLevel.H
         });
 
-        // Gửi dữ liệu đến Google Apps Script để ghi log
-        logToGoogleSheet(text);
-    });
+        // Sử dụng debounce để ghi log sau khi người dùng ngừng nhập
+        clearTimeout(logDebounceTimer);
+        
+        statusMessage.textContent = 'Đang chờ bạn nhập xong để lưu...';
+        statusMessage.style.color = '#666';
+
+        logDebounceTimer = setTimeout(() => {
+            statusMessage.textContent = 'Đang lưu log...';
+            statusMessage.style.color = 'orange';
+            logToGoogleSheet(text);
+        }, 5000); // Đợi 5 giây sau lần nhập cuối cùng
+    }
+
+    textInput.addEventListener('input', handleInputChange);
 
     async function logToGoogleSheet(content) {
         try {
-            // Sử dụng fetch để gửi yêu cầu POST
-            // mode: 'no-cors' được dùng để tránh lỗi CORS khi gửi từ client,
-            // vì GAS không dễ cấu hình CORS cho các yêu cầu đơn giản.
-            // Chúng ta chỉ "bắn và quên" mà không cần nhận phản hồi.
             await fetch(GAS_WEB_APP_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -49,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ content: content })
             });
 
-            // Hiển thị thông báo thành công trên giao diện
             statusMessage.textContent = 'Tạo mã thành công và đã lưu log!';
             statusMessage.style.color = 'green';
 
