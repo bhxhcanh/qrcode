@@ -31,11 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sử dụng debounce để ghi log sau khi người dùng ngừng nhập
         clearTimeout(logDebounceTimer);
         
-        statusMessage.textContent = 'Đang chờ bạn nhập xong để lưu...';
+        statusMessage.textContent = 'Đang chờ bạn nhập...';
         statusMessage.style.color = '#666';
 
         logDebounceTimer = setTimeout(() => {
-            statusMessage.textContent = 'Đang lưu log...';
+            statusMessage.textContent = 'Đang tạp...';
             statusMessage.style.color = 'orange';
             logToGoogleSheet(text);
         }, 5000); // Đợi 5 giây sau lần nhập cuối cùng
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ content: content })
             });
 
-            statusMessage.textContent = 'Tạo mã thành công và đã lưu log!';
+            statusMessage.textContent = 'Tạo mã thành công!';
             statusMessage.style.color = 'green';
 
         } catch (error) {
