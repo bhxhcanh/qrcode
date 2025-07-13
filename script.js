@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // THAY THẾ BẰNG URL WEB APP CỦA BẠN TỪ BƯỚC 1
-    const GAS_WEB_APP_URL = 'DÁN_URL_WEB_APP_CỦA_BẠN_VÀO_ĐÂY';
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw98atO4DVVxrEUvvcgNrao_j0jSqCBRk-179yAwmdm8mlJIBSdvXc08BTxJWEtZWlUdA/exec';
 
     const generateBtn = document.getElementById('generate-btn');
     const textInput = document.getElementById('text-input');
