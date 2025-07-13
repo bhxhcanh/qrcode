@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-// ---- URL Backend Google Apps Script ----
-// URL ứng dụng web đã được tích hợp sẵn.
+// ---- Dành cho Nhà phát triển: Dán URL Google Apps Script của bạn vào đây ----
+// 1. Triển khai tập lệnh từ file `code.txt` dưới dạng Ứng dụng web.
+// 2. Cấp quyền truy cập cho "Bất kỳ ai".
+// 3. Sao chép URL Ứng dụng web và dán vào đây, thay thế chuỗi bên dưới.
 const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw98atO4DVVxrEUvvcgNrao_j0jSqCBRk-179yAwmdm8mlJIBSdvXc08BTxJWEtZWlUdA/exec';
+// -------------------------------------------------------------------------
 
 // ---- Biểu tượng (Icons) ----
 const QrCodeIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -40,11 +43,9 @@ interface QRCodeDisplayProps {
   qrCodeUrl: string;
   isLoading: boolean;
   inputText: string;
-  setIsLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
 }
 
-const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrCodeUrl, isLoading, inputText, setIsLoading, setError }) => {
+const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrCodeUrl, isLoading, inputText }) => {
   const getFilename = () => {
     try {
         const url = new URL(inputText);
@@ -55,25 +56,14 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrCodeUrl, isLoading, inp
     }
   };
 
-  const handleDownload = async () => {
-    if (!inputText) return;
-    const googleChartsUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(inputText)}`;
-    try {
-        const response = await fetch(googleChartsUrl);
-        if (!response.ok) throw new Error('Không thể tải hình ảnh từ API.');
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = getFilename();
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
-    } catch (err) {
-        console.error("Lỗi tải xuống:", err);
-        setError("Không thể tải xuống mã QR. Vui lòng thử lại.");
-    }
+  const handleDownload = () => {
+    if (!qrCodeUrl || !inputText) return;
+    const link = document.createElement('a');
+    link.href = qrCodeUrl;
+    link.download = getFilename();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -89,16 +79,12 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrCodeUrl, isLoading, inp
               src={qrCodeUrl} 
               alt="Generated QR Code" 
               className="w-72 h-72 rounded-lg"
-              onLoad={() => setIsLoading(false)}
-              onError={() => {
-                setError('Không thể tải hình ảnh mã QR từ backend. Hãy kiểm tra lại URL.');
-                setIsLoading(false);
-              }}
             />
           </div>
           <button
             onClick={handleDownload}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-slate-800 transition-colors"
+            disabled={!inputText}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-slate-800 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
           >
             <DownloadIcon className="w-5 h-5" />
             Tải xuống PNG
@@ -124,6 +110,7 @@ function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   
   const debouncedInputText = useDebounce(inputText, 500);
+  const isUrlConfigured = GAS_WEB_APP_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
 
   // Khởi tạo và quản lý Theme
   useEffect(() => {
@@ -147,28 +134,29 @@ function App() {
     }
   }, [theme]);
   
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
+  const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
   const logQRCodeGeneration = useCallback((generatedText: string) => {
-    if (!GAS_WEB_APP_URL) return; 
+    if (!isUrlConfigured) return; 
     const logData = { timestamp: new Date().toISOString(), text: generatedText };
-    if (navigator.sendBeacon) {
-      const blob = new Blob([JSON.stringify(logData)], { type: 'text/plain;charset=utf-8' });
-      navigator.sendBeacon(GAS_WEB_APP_URL, blob);
-    } else {
-      fetch(GAS_WEB_APP_URL, {
-        method: 'POST', mode: 'no-cors', body: JSON.stringify(logData),
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      }).catch(error => console.error('Không thể gửi dữ liệu nhật ký:', error));
+    try {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify(logData)], { type: 'text/plain;charset=utf-8' });
+          navigator.sendBeacon(GAS_WEB_APP_URL, blob);
+        } else {
+          fetch(GAS_WEB_APP_URL, {
+            method: 'POST', mode: 'no-cors', body: JSON.stringify(logData),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          }).catch(error => console.error('Không thể gửi dữ liệu nhật ký:', error));
+        }
+    } catch(e) {
+        console.error("Lỗi gửi nhật ký:", e);
     }
-  }, []);
+  }, [isUrlConfigured]);
 
-  const generateQRCode = useCallback((text: string) => {
-    if (!GAS_WEB_APP_URL) {
-      setError("URL Google Apps Script chưa được cấu hình trong mã nguồn.");
-      setIsLoading(false);
+  const generateQRCode = useCallback(async (text: string) => {
+    if (!isUrlConfigured) {
+      setError("Cần cấu hình: Vui lòng dán URL Google Apps Script của bạn vào file App.tsx.");
       return;
     }
     if (!text.trim()) {
@@ -176,22 +164,42 @@ function App() {
       setIsLoading(false);
       return;
     }
+
     setIsLoading(true);
     setError(null);
-    const backendUrl = `${GAS_WEB_APP_URL}?text=${encodeURIComponent(text)}`;
-    setQrCodeUrl(backendUrl);
-  }, []);
+    
+    const url = `${GAS_WEB_APP_URL}?text=${encodeURIComponent(text)}`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Lỗi mạng: ${response.status}. ${errorText}`);
+        }
+        const data = await response.json();
+        if (data.status === 'success' && data.imageUrl) {
+          setQrCodeUrl(data.imageUrl);
+          logQRCodeGeneration(text);
+        } else {
+          throw new Error(data.message || 'Phản hồi từ backend không hợp lệ.');
+        }
+    } catch (err: any) {
+        console.error("Lỗi tạo QR:", err);
+        setError(`Không thể tạo mã QR. Hãy kiểm tra URL Apps Script và kết nối của bạn. (${err.message})`);
+        setQrCodeUrl('');
+    } finally {
+        setIsLoading(false);
+    }
+  }, [isUrlConfigured, logQRCodeGeneration]);
   
   useEffect(() => {
-    if (debouncedInputText && GAS_WEB_APP_URL) {
+    if (debouncedInputText && isUrlConfigured) {
       generateQRCode(debouncedInputText);
-      logQRCodeGeneration(debouncedInputText);
     } else if (!debouncedInputText) {
       setQrCodeUrl('');
       setError(null);
       setIsLoading(false);
     }
-  }, [debouncedInputText, generateQRCode, logQRCodeGeneration]);
+  }, [debouncedInputText, isUrlConfigured, generateQRCode]);
 
   return (
     <>
@@ -199,8 +207,8 @@ function App() {
         <div className="w-full max-w-md mx-auto">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8">
             <header className="relative text-center mb-6">
-              <div className="absolute top-0 right-0 flex items-center">
-                <button onClick={toggleTheme} className="text-slate-500 hover:text-indigo-500 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors">
+              <div className="absolute top-0 right-0">
+                <button onClick={toggleTheme} className="text-slate-500 hover:text-indigo-500 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors" aria-label="Toggle theme">
                   {theme === 'light' ? <MoonIcon className="w-6 h-6" /> : <SunIcon className="w-6 h-6" />}
                 </button>
               </div>
@@ -212,6 +220,12 @@ function App() {
             </header>
             
             <main>
+              {!isUrlConfigured && (
+                <div className="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 text-red-800 dark:text-red-200 p-4 rounded-md mb-4" role="alert">
+                    <p className="font-bold">Cần hành động</p>
+                    <p>Để bắt đầu, hãy mở file `App.tsx` và dán URL Google Apps Script của bạn vào hằng số `GAS_WEB_APP_URL`.</p>
+                </div>
+              )}
               <div className="flex flex-col gap-4">
                 <label htmlFor="qr-input" className="sr-only">Nhập URL hoặc văn bản</label>
                 <input
@@ -220,14 +234,15 @@ function App() {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="ví dụ: https://example.com"
-                  className="w-full px-4 py-3 text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg border-2 border-transparent focus:border-indigo-500 focus:outline-none focus:ring-0 transition"
+                  className="w-full px-4 py-3 text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg border-2 border-transparent focus:border-indigo-500 focus:outline-none focus:ring-0 transition disabled:bg-slate-200 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
                   required
+                  disabled={!isUrlConfigured}
                 />
               </div>
 
               {error && ( <p className="text-red-500 text-sm mt-4 text-center">{error}</p> )}
 
-              <QRCodeDisplay qrCodeUrl={qrCodeUrl} isLoading={isLoading} inputText={debouncedInputText} setIsLoading={setIsLoading} setError={setError} />
+              <QRCodeDisplay qrCodeUrl={qrCodeUrl} isLoading={isLoading} inputText={debouncedInputText} />
             </main>
           </div>
           <footer className="text-center mt-6">
