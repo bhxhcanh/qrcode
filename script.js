@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.style.color = '#666';
 
         logDebounceTimer = setTimeout(() => {
-            statusMessage.textContent = 'Đang tạp...';
+            statusMessage.textContent = 'Đang tạo...';
             statusMessage.style.color = 'orange';
             logToGoogleSheet(text);
         }, 5000); // Đợi 5 giây sau lần nhập cuối cùng
