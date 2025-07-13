@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 // 1. Triển khai tập lệnh từ file `code.txt` dưới dạng Ứng dụng web.
 // 2. Cấp quyền truy cập cho "Bất kỳ ai".
 // 3. Sao chép URL Ứng dụng web và dán vào đây, thay thế chuỗi bên dưới.
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw98atO4DVVxrEUvvcgNrao_j0jSqCBRk-179yAwmdm8mlJIBSdvXc08BTxJWEtZWlUdA/exec';
+const GAS_WEB_APP_URL: string = 'https://script.google.com/macros/s/AKfycbw98atO4DVVxrEUvvcgNrao_j0jSqCBRk-179yAwmdm8mlJIBSdvXc08BTxJWEtZWlUdA/exec';
 // -------------------------------------------------------------------------
 
 // ---- Biểu tượng (Icons) ----
