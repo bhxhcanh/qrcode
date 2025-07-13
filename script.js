@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const textInput = document.getElementById('text-input');
     const qrContainer = document.getElementById('qrcode-container');
     const statusMessage = document.getElementById('status-message');
-    let qrcode = null; // Biến để giữ đối tượng QR code
 
     generateBtn.addEventListener('click', () => {
         const text = textInput.value.trim();
@@ -20,22 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
         qrContainer.innerHTML = '';
         statusMessage.textContent = 'Đang tạo mã...';
 
-        // Tạo mã QR mới
-        if (!qrcode) {
-            qrcode = new QRCode(qrContainer, {
-                text: text,
-                width: 256,
-                height: 256,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        } else {
-            qrcode.makeCode(text);
-        }
+        // Tạo mã QR mới mỗi lần click.
+        // Điều này đơn giản và hiệu quả hơn là cố gắng cập nhật mã QR hiện có.
+        new QRCode(qrContainer, {
+            text: text,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
 
         // Gửi dữ liệu đến Google Apps Script để ghi log
-        logToGoogleSheet(text);
+        logToGoogleSheet(content);
     });
 
     async function logToGoogleSheet(content) {
