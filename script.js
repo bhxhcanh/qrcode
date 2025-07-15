@@ -3,11 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw98atO4DVVxrEUvvcgNrao_j0jSqCBRk-179yAwmdm8mlJIBSdvXc08BTxJWEtZWlUdA/exec';
 
     const textInput = document.getElementById('text-input');
+    const generateBtn = document.getElementById('generate-btn');
     const qrContainer = document.getElementById('qrcode-container');
     const statusMessage = document.getElementById('status-message');
-    let logDebounceTimer;
 
-    function handleInputChange() {
+    function handleGenerateClick() {
         const text = textInput.value.trim();
 
         // Xóa mã QR cũ và thông báo
@@ -15,10 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.textContent = '';
 
         if (text === '') {
+            statusMessage.textContent = 'Vui lòng nhập nội dung để tạo mã.';
+            statusMessage.style.color = 'red';
             return; // Nếu không có nội dung, dừng lại
         }
 
-        // Tạo mã QR mới ngay lập tức
+        statusMessage.textContent = 'Đang tạo...';
+        statusMessage.style.color = 'orange';
+
+        // Tạo mã QR mới
         new QRCode(qrContainer, {
             text: text,
             width: 256,
@@ -27,21 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
         });
-
-        // Sử dụng debounce để ghi log sau khi người dùng ngừng nhập
-        clearTimeout(logDebounceTimer);
         
-        statusMessage.textContent = 'Đang chờ bạn nhập...';
-        statusMessage.style.color = '#666';
-
-        logDebounceTimer = setTimeout(() => {
-            statusMessage.textContent = 'Đang tạo...';
-            statusMessage.style.color = 'orange';
-            logToGoogleSheet(text);
-        }, 5000); // Đợi 5 giây sau lần nhập cuối cùng
+        // Ghi log ngay sau khi tạo
+        logToGoogleSheet(text);
     }
 
-    textInput.addEventListener('input', handleInputChange);
+    generateBtn.addEventListener('click', handleGenerateClick);
 
     async function logToGoogleSheet(content) {
         try {
